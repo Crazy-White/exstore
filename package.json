@@ -1,0 +1,21 @@
+{
+    "name": "exstore",
+    "version": "0.0.1",
+    "description": "",
+    "main": "dist/exstore.js",
+    "scripts": {
+        "test": "xdg-open index.html",
+        "prettier": "prettier --write . --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
+        "rollup": "rollup src/exstore.js --file dist/exstore.js --format umd --name exstore"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Crazy-White/exstore.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Crazy-White/exstore/issues"
+    },
+    "homepage": "https://github.com/Crazy-White/exstore#readme"
+}
