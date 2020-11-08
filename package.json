@@ -2,11 +2,14 @@
     "name": "exstore",
     "version": "0.0.1",
     "description": "",
-    "main": "dist/exstore.js",
+    "main": "dist/exstore.umd.js",
+    "module": "dist/exstore.esm.js",
+    "browser": "dist/exstore.iife.js",
     "scripts": {
+        "dev": "rollup src/exstore.js --file dist/exstore.js --format cjs",
         "test": "xdg-open index.html",
         "prettier": "prettier --write . --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
-        "rollup": "rollup src/exstore.js --file dist/exstore.js --format umd --name exstore"
+        "rollup": "rollup -c"
     },
     "repository": {
         "type": "git",

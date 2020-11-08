@@ -1,7 +1,11 @@
 class Exstore {
     constructor(...template) {
-        this._template = template;
-        this.$template = template.map(e => (Array.isArray(e) ? e[0] : e));
+        this._template = template.map(e => {
+            if (typeof e[0] !== 'string') throw new Error('keyName must be string');
+            if (Array.isArray(e)) return [e[0], e[1] || '*', Boolean(e[2])];
+            else return [e, '*', false];
+        });
+        this.$template = this._template.map(e => e[0]);
         this._source = [];
     }
     _objectify(arr) {
@@ -13,9 +17,9 @@ class Exstore {
         return obj;
     }
     getItem(k, v) {
-        if (!v) throw new Error('this function has two params');
+        if (!v) throw new Error('This function has two params');
         let fin = null;
-        const index = this.$template.indexOf(k);
+        const index = typeof k === 'number' ? k : this.$template.indexOf(k);
         if (index < 0) return null;
         for (let i = 0, len = this._source.length; i < len; i++) {
             const out = this._source[i][index];
@@ -27,12 +31,27 @@ class Exstore {
         return fin;
     }
     setItem(...args) {
-        const arr = [];
+        const arr = Array(this.$template.length).fill(null);
         for (let i = 0, len = args.length; i < len; i++) {
-            const data = args[i];  // TODO: type handler
-            if (Array.isArray(this._template) && this._template[1]) {
-                if (this.getItem(this.$template[i], data)) throw new Error('Already exist');
-                else arr.push(data);
+            const data = args[i];
+            const [keyName, types, isUnique] = this._template[i];
+            let flag = false;
+            if (types.includes('*')) {
+                flag = true;
+            } else {
+                // handler the string command, TODO: filter the wrong command
+                types
+                    .replace(' ', '')
+                    .toLowerCase()
+                    .split('|')
+                    .forEach(e => (typeof data === e ? (flag = true) : ''));
+            }
+
+            if (flag) {
+                if (this.getItem(keyName, data)) throw new Error('Key already exists');
+                else arr[i] = data;
+            } else {
+                throw new Error('This type of input is not allowed');
             }
         }
         this._source.push(arr);
@@ -42,7 +61,7 @@ class Exstore {
         args.forEach(e => this.setItem(...e));
     }
     toObject = () => this._source.map(this._objectify.bind(this));
-    toString = () => JSON.stringify(this._source.map(this._objectify));
+    toString = () => JSON.stringify(this._source.map(this._objectify.bind(this)));
 }
 
 export default Exstore;

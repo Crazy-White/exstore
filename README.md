@@ -1,11 +1,11 @@
 # Exstore
 
-### new Exstore([keyName, isUnique, type], [...], ...)
+### new Exstore([keyName ,types, isUnique], [...], ...)
 
-The constructor passes in multiple arguments, each of which is an array ([keyName, isUnique, Type]), equivalent to ([keyName]) if not an array
+The constructor passes in multiple arguments, each of which is an array ([keyName, types, isUnique]), equivalent to ([keyName, '*', false]) if not an array
 
 ```javascript
-const storage = new Exstore(['id', false, 'number'], name, info);
+const storage = new Exstore(['id', 'number', false], name, info);
 ```
 
 ### setItem(...val)
@@ -25,7 +25,7 @@ If there are multiple, only the first one is returned
 storage.getItem(id, 2); // => [2, 'Shelly', 'wow...']
 ```
 
-### insert()
+### insert(...args)
 
 Set many items
 
