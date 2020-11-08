@@ -1,4 +1,4 @@
-class Exstore {
+class Listore {
     constructor(...template) {
         this._template = template.map(e => {
             if (typeof e[0] !== 'string') throw new Error('keyName must be string');
@@ -64,4 +64,4 @@ class Exstore {
     toString = () => JSON.stringify(this._source.map(this._objectify.bind(this)));
 }
 
-export default Exstore;
+export default Listore;

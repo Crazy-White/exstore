@@ -1,24 +1,24 @@
 {
-    "name": "exstore",
+    "name": "listore",
     "version": "0.0.1",
     "description": "",
-    "main": "dist/exstore.umd.js",
-    "module": "dist/exstore.esm.js",
-    "browser": "dist/exstore.iife.js",
+    "main": "dist/listore.umd.js",
+    "module": "dist/listore.esm.js",
+    "browser": "dist/listore.iife.js",
     "scripts": {
-        "dev": "rollup src/exstore.js --file dist/exstore.js --format cjs",
+        "dev": "rollup src/listore.js --file dist/listore.js --format cjs",
         "test": "xdg-open index.html",
-        "prettier": "prettier --write . --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
+        "prettier": "prettier --write ./src --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
         "rollup": "rollup -c"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Crazy-White/exstore.git"
+        "url": "git+https://github.com/Crazy-White/listore.git"
     },
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/Crazy-White/exstore/issues"
+        "url": "https://github.com/Crazy-White/listore/issues"
     },
-    "homepage": "https://github.com/Crazy-White/exstore#readme"
+    "homepage": "https://github.com/Crazy-White/listore#readme"
 }

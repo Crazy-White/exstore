@@ -1,11 +1,14 @@
-# Exstore
+# Listore
 
-### new Exstore([keyName ,types, isUnique], [...], ...)
+Store some data line by line  
+Using this library, it is recommended that you store something that could be stringified.
+
+### new Listore([keyName ,types, isUnique], [...], ...)
 
 The constructor passes in multiple arguments, each of which is an array ([keyName, types, isUnique]), equivalent to ([keyName, '*', false]) if not an array
 
 ```javascript
-const storage = new Exstore(['id', 'number', false], name, info);
+const storage = new Listore(['id', 'number', false], name, info);
 ```
 
 ### setItem(...val)
