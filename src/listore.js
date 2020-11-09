@@ -6,13 +6,15 @@ class Listore {
             else return [e, '*', false];
         });
         this.$template = this._template.map(e => e[0]);
+        if (new Set(this.$template).size !== this.$template.length) throw new Error('keyName cannot be the same');
         this._source = [];
     }
     _objectify(arr) {
-        // arr is a single Array
+        // arr is a single array
         const obj = {};
         for (let i = 0, len = arr.length; i < len; i++) {
-            this.$template.forEach(key => (obj[key] = arr[i]));
+            // for single data
+            obj[this.$template[i]] = arr[i];
         }
         return obj;
     }
@@ -30,7 +32,7 @@ class Listore {
         }
         return fin;
     }
-    setItem(...args) {
+    _modify(...args) {
         const arr = Array(this.$template.length).fill(null);
         for (let i = 0, len = args.length; i < len; i++) {
             const data = args[i];
@@ -46,7 +48,6 @@ class Listore {
                     .split('|')
                     .forEach(e => (typeof data === e ? (flag = true) : ''));
             }
-
             if (flag) {
                 if (this.getItem(keyName, data)) throw new Error('Key already exists');
                 else arr[i] = data;
@@ -54,12 +55,38 @@ class Listore {
                 throw new Error('This type of input is not allowed');
             }
         }
-        this._source.push(arr);
+        return arr;
+    }
+    setItem(...args) {
+        try {
+            this._source.push(this._modify(...args));
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+    // methods below will change the raw _source
+    // otherwise it will not be included
+    // use toObject function can make search easier
+    insert = (locator, data) => {
+        // add another element after one
+        // locator is a reference to a known element
+        // data: args in setItem(...args), is an array
+        const place = typeof locator === 'number' ? locator : this._source.indexOf(locator);
+        if (place < 0) return false;
+        this._source.splice(place, 0, this._modify(...data));
         return true;
-    }
-    insert(...args) {
-        args.forEach(e => this.setItem(...e));
-    }
+    };
+    delete = locator => {
+        // e.g. storage.delete(storage.getItem(...args))
+        const place = typeof locator === 'number' ? locator : this._source.indexOf(locator);
+        if (place < 0) return false;
+        this._source.splice(place, 1);
+        return true;
+    };
+    reverse = () => this._source.reverse();
+    sort = func => this._source.sort(func);
+    // util
     toObject = () => this._source.map(this._objectify.bind(this));
     toString = () => JSON.stringify(this._source.map(this._objectify.bind(this)));
 }

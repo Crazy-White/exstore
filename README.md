@@ -16,8 +16,8 @@ const storage = new Listore(['id', 'number', false], name, info);
 Set one item
 
 ```javascript
-storage.setItem(1, 'Peter', 'empty...');
-storage.setItem(2, 'Shelly', 'wow...');
+storage.setItem(1, 'Peter', 'empty...'); // => true
+storage.setItem(2, 'Shelly', 'wow...'); // => true
 ```
 
 ### getItem(key, val)
@@ -28,19 +28,29 @@ If there are multiple, only the first one is returned
 storage.getItem(id, 2); // => [2, 'Shelly', 'wow...']
 ```
 
-### insert(...args)
-
-Set many items
+### insert(locator, args)
 
 ```javascript
-storage.insert([3, '???', '...'], [4, '!!!', '...']);
+storage.insert(storage.getItem(id, 1), [3, 'John', 'cool...']); // => true
 ```
+
+### delete(locator)
+
+```javascript
+storage.delete(storage.getItem(...args)); // => true
+```
+
+### reverse()
+
+### sort(func)
 
 ### toObject()
 
 ### toString()
 
 ### \_objectify()
+
+### \_modify()
 
 ### \_source
 
