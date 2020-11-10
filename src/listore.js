@@ -1,42 +1,46 @@
+import clone from './clone.js';
+const $source = Symbol('source array');
+const $template = Symbol('complied template');
+const $tpl = Symbol('string template');
 class Listore {
+    [$source] = [];
     constructor(...template) {
-        this._template = template.map(e => {
+        this[$template] = template.map(e => {
             if (typeof e[0] !== 'string') throw new Error('keyName must be string');
             if (Array.isArray(e)) return [e[0], e[1] || '*', Boolean(e[2])];
             else return [e, '*', false];
         });
-        this.$template = this._template.map(e => e[0]);
-        if (new Set(this.$template).size !== this.$template.length) throw new Error('keyName cannot be the same');
-        this._source = [];
+        this[$tpl] = this[$template].map(e => e[0]);
+        if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('keyName cannot be the same');
     }
     _objectify(arr) {
         // arr is a single array
         const obj = {};
         for (let i = 0, len = arr.length; i < len; i++) {
             // for single data
-            obj[this.$template[i]] = arr[i];
+            obj[this[$tpl][i]] = arr[i];
         }
         return obj;
     }
     getItem(k, v) {
         if (!v) throw new Error('This function has two params');
         let fin = null;
-        const index = typeof k === 'number' ? k : this.$template.indexOf(k);
+        const index = typeof k === 'number' ? k : this[$tpl].indexOf(k);
         if (index < 0) return null;
-        for (let i = 0, len = this._source.length; i < len; i++) {
-            const out = this._source[i][index];
+        for (let i = 0, len = this[$source].length; i < len; i++) {
+            const out = this[$source][i][index];
             if (out === v) {
-                fin = this._source[i];
+                fin = this[$source][i];
                 break;
             }
         }
         return fin;
     }
-    _modify(...args) {
-        const arr = Array(this.$template.length).fill(null);
-        for (let i = 0, len = args.length; i < len; i++) {
-            const data = args[i];
-            const [keyName, types, isUnique] = this._template[i];
+    _modify(values) {
+        const arr = Array(this[$tpl].length).fill(null);
+        for (let i = 0, len = values.length; i < len; i++) {
+            const data = values[i];
+            const [keyName, types, isUnique] = this[$template][i];
             let flag = false;
             if (types.includes('*')) {
                 flag = true;
@@ -55,11 +59,11 @@ class Listore {
                 throw new Error('This type of input is not allowed');
             }
         }
-        return arr;
+        return clone(arr);
     }
-    setItem(...args) {
+    setItem(values) {
         try {
-            this._source.push(this._modify(...args));
+            this[$source].push(this._modify(values));
             return true;
         } catch (err) {
             return false;
@@ -68,27 +72,33 @@ class Listore {
     // methods below will change the raw _source
     // otherwise it will not be included
     // use toObject function can make search easier
-    insert = (locator, data) => {
+    insert = (locator, values) => {
         // add another element after one
         // locator is a reference to a known element
-        // data: args in setItem(...args), is an array
-        const place = typeof locator === 'number' ? locator : this._source.indexOf(locator);
+        // data: args in setItem(args), is an array
+        const place = typeof locator === 'number' ? locator : this[$source].indexOf(locator);
         if (place < 0) return false;
-        this._source.splice(place, 0, this._modify(...data));
+        this[$source].splice(place, 0, this._modify(values));
         return true;
     };
     delete = locator => {
         // e.g. storage.delete(storage.getItem(...args))
-        const place = typeof locator === 'number' ? locator : this._source.indexOf(locator);
+        const place = typeof locator === 'number' ? locator : this[$source].indexOf(locator);
         if (place < 0) return false;
-        this._source.splice(place, 1);
+        this[$source].splice(place, 1);
         return true;
     };
-    reverse = () => this._source.reverse();
-    sort = func => this._source.sort(func);
+    reverse = () => this[$source].reverse();
+    sort = f => this[$source].sort(f);
+    // output
+    get template() {
+        return clone(this[$template]);
+    }
     // util
-    toObject = () => this._source.map(this._objectify.bind(this));
-    toString = () => JSON.stringify(this._source.map(this._objectify.bind(this)));
+    toObject = () => this[$source].map(this._objectify.bind(this));
+    toJSON = () => JSON.stringify(this.toObject());
+    toString = () => this.toJSON();
+    static clone = (...args) => clone(...args);
 }
 
 export default Listore;

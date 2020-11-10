@@ -2,9 +2,9 @@
     "name": "listore",
     "version": "0.0.1",
     "description": "",
-    "main": "dist/listore.umd.js",
+    "main": "dist/listore.cjs.js",
     "module": "dist/listore.esm.js",
-    "browser": "dist/listore.iife.js",
+    "browser": "dist/listore.umd.js",
     "scripts": {
         "dev": "rollup src/listore.js --file dist/listore.js --format cjs",
         "test": "xdg-open index.html",
@@ -20,5 +20,6 @@
     "bugs": {
         "url": "https://github.com/Crazy-White/listore/issues"
     },
-    "homepage": "https://github.com/Crazy-White/listore#readme"
+    "homepage": "https://github.com/Crazy-White/listore#readme",
+    "dependencies": {}
 }

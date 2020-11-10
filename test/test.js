@@ -1,10 +1,10 @@
 const Listore = require('./dist/listore.umd.js');
-a = new Listore(['id', 'number', 'true'], ['key', 'string|number'], ['name', 'string|number']);
+a = new Listore(['id', 'number', true], ['key', 'string|number'], ['name', 'string|number']);
 f = () => {
     [
         [1, 'a', 'hello'],
         [2, 'b', 'world'],
-    ].forEach(e => a.setItem(...e));
+    ].forEach(e => a.setItem(e));
 };
 f();
 while (false) {
@@ -16,4 +16,4 @@ console.log(a.reverse());
 console.log(a.reverse());
 console.log(a.reverse());
 console.log(a.sort());
-a.setItem(...[3, 'c', '!']);
+a.setItem([3, 'c', '!']);
