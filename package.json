@@ -1,22 +1,23 @@
 {
     "name": "listore",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "store some data as a list",
     "main": "dist/listore.cjs.js",
     "module": "dist/listore.esm.js",
     "browser": "dist/listore.umd.js",
     "scripts": {
         "dev": "rollup src/listore.js --file dist/listore.js --format cjs",
-        "test": "xdg-open index.html",
+        "test": "xdg-open test/index.html",
         "prettier": "prettier --write --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
         "rollup": "rollup -c",
-        "build": "npm run prettier ./src && npm run rollup"
+        "terser": "terser dist/listore.umd.js -o dist/listore.min.js -c",
+        "build": "npm run prettier ./src && npm run rollup && npm run terser"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Crazy-White/listore.git"
     },
-    "author": "",
+    "author": "CrazyWhite",
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/Crazy-White/listore/issues"
