@@ -13,30 +13,34 @@ class Listore {
         this[$tpl] = this[$template].map(e => e[0]);
         if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('keyName cannot be the same');
     }
-    _objectify(arr) {
+    objectify(arr) {
         // arr is a single array
         const obj = {};
-        for (let i = 0, len = arr.length; i < len; i++) {
-            // for single data
-            obj[this[$tpl][i]] = arr[i];
-        }
+        for (let i = 0, len = arr.length; i < len; i++) obj[this[$tpl][i]] = arr[i];
         return obj;
     }
-    getItem(k, v) {
-        if (!v) throw new Error('This function has two params');
-        let fin = null;
+    arrayify(obj) {
+        const t = this[$tpl],
+            len = t.length,
+            arr = Array.of(len).fill(null);
+        for (let i = 0; i < len; i++) arr[i] = obj[t[i]];
+        return arr;
+    }
+    position(k, v, p = 0) {
+        // Index|KeyName: k
+        if (p > this[$source].length - 1) return -1;
         const index = typeof k === 'number' ? k : this[$tpl].indexOf(k);
-        if (index < 0) return null;
-        for (let i = 0, len = this[$source].length; i < len; i++) {
-            const out = this[$source][i][index];
-            if (out === v) {
-                fin = this[$source][i];
-                break;
+        if (index < 0) return -1;
+        for (let i = p, len = this[$source].length; i < len; i++) {
+            if (this[$source][i][index] === v) {
+                return i;
             }
         }
-        return fin;
+        return -1;
     }
-    _modify(values) {
+    modify(values) {
+        // Array|Object: values  return Array
+        values = Array.isArray(values) ? values : this.arrayify(values);
         const arr = Array(this[$tpl].length).fill(null);
         for (let i = 0, len = values.length; i < len; i++) {
             const data = values[i];
@@ -61,9 +65,20 @@ class Listore {
         }
         return clone(arr);
     }
+    resetItem(pos, newValues) {
+        const refer = this[$source][pos];
+        const newVal = this.modify(newValues);
+        refer = newVal;
+        return true;
+    }
+    getItem(k, v, p = 0) {
+        const pos = this.position(k, v, p);
+        if (pos < 0) return null;
+        return clone(this[$source][pos]);
+    }
     setItem(values) {
         try {
-            this[$source].push(this._modify(values));
+            this[$source].push(this.modify(values));
             return true;
         } catch (err) {
             return false;
@@ -72,20 +87,17 @@ class Listore {
     // methods below will change the raw _source
     // otherwise it will not be included
     // use toObject function can make search easier
-    insert = (locator, values) => {
+    insert = (pos, values) => {
         // add another element after one
         // locator is a reference to a known element
         // data: args in setItem(args), is an array
-        const place = typeof locator === 'number' ? locator : this[$source].indexOf(locator);
-        if (place < 0) return false;
-        this[$source].splice(place, 0, this._modify(values));
+        if (pos > this[$source].length - 1) return false;
+        this[$source].splice(pos, 0, this.modify(values));
         return true;
     };
-    delete = locator => {
-        // e.g. storage.delete(storage.getItem(...args))
-        const place = typeof locator === 'number' ? locator : this[$source].indexOf(locator);
-        if (place < 0) return false;
-        this[$source].splice(place, 1);
+    delete = pos => {
+        if (pos > this[$source].length - 1) return -1;
+        this[$source].splice(pos, 1);
         return true;
     };
     reverse = () => this[$source].reverse();
@@ -94,10 +106,13 @@ class Listore {
     get template() {
         return clone(this[$template]);
     }
+    get source() {
+        return clone(this[$source]);
+    }
     // util
-    toObject = () => this[$source].map(this._objectify.bind(this));
-    toJSON = () => JSON.stringify(this.toObject());
-    toString = () => this.toJSON();
+    toObject = () => this[$source].map(this.objectify.bind(this));
+    toString = () => JSON.stringify(this.toObject());
+    toJSON = () => this.source;
     static clone = (...args) => clone(...args);
 }
 

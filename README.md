@@ -1,6 +1,6 @@
 # Listore
 
-Store some data line by line  
+Store some data as a list.
 Using this library, it is recommended that you store something that could be stringified.
 
 ### new Listore([keyName ,types, isUnique], [...], ...)
@@ -11,6 +11,11 @@ The constructor passes in multiple arguments, each of which is an array ([keyNam
 const storage = new Listore(['id', 'number', false], name, info);
 ```
 
+### Liststore.clone
+
+a clone function from _npm package clone v2.1.2_
+<https://www.npmjs.com/package/clone>
+
 ### setItem(values)
 
 Set one item
@@ -20,7 +25,9 @@ storage.setItem([1, 'Peter', 'empty...']); // => true
 storage.setItem([2, 'Shelly', 'wow...']); // => true
 ```
 
-### getItem(key, val)
+### resetItem(pos, newValues)
+
+### getItem(key, val, start = 0)
 
 If there are multiple, only the first one is returned
 
@@ -28,16 +35,18 @@ If there are multiple, only the first one is returned
 storage.getItem(id, 2); // => [2, 'Shelly', 'wow...']
 ```
 
-### insert(locator, values)
+### position(k, v, start = 0)
+
+### insert(pos, values)
 
 ```javascript
-storage.insert(storage.getItem(id, 1), [3, 'John', 'cool...']); // => true
+storage.insert(0, [3, 'John', 'cool...']); // => true
 ```
 
-### delete(locator)
+### delete(pos)
 
 ```javascript
-storage.delete(storage.getItem(k, v)); // => true
+storage.delete(0); // => true
 ```
 
 ### reverse()
@@ -48,8 +57,12 @@ storage.delete(storage.getItem(k, v)); // => true
 
 ### toString()
 
-### \_objectify()
+### \objectify(arr)
 
-### \_modify()
+### \arrayify(obj)
 
-### \template
+### \modify(arr|obj)
+
+### template
+
+### source

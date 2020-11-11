@@ -1,4 +1,4 @@
-const Listore = require('./dist/listore.umd.js');
+const Listore = require('./dist/listore.cjs.js');
 a = new Listore(['id', 'number', true], ['key', 'string|number'], ['name', 'string|number']);
 f = () => {
     [

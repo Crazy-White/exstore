@@ -1,15 +1,16 @@
 {
     "name": "listore",
     "version": "0.0.1",
-    "description": "",
+    "description": "store some data as a list",
     "main": "dist/listore.cjs.js",
     "module": "dist/listore.esm.js",
     "browser": "dist/listore.umd.js",
     "scripts": {
         "dev": "rollup src/listore.js --file dist/listore.js --format cjs",
         "test": "xdg-open index.html",
-        "prettier": "prettier --write ./src --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
-        "rollup": "rollup -c"
+        "prettier": "prettier --write --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
+        "rollup": "rollup -c",
+        "build": "npm run prettier ./src && npm run rollup"
     },
     "repository": {
         "type": "git",
