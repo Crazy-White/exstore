@@ -1,3 +1,5 @@
+import clone from './clone.js';
+
 const $source = Symbol('source array');
 const $template = Symbol('complied template');
 const $tpl = Symbol('string template');
@@ -6,8 +8,8 @@ const $tpl = Symbol('string template');
 class Listore {
     [$source] = [];
     /**
-     * Generate an instance of Listorr
-     * @param {array} template - The template for values.
+     * Generate an instance of Listore
+     * @param {array} template - The template for values
      */
     constructor(...template) {
         this[$template] = template.map(e => {
@@ -20,9 +22,9 @@ class Listore {
     }
 
     /**
-     * Convert data into an object.
-     * @param {array} arr - An array which fit the template.
-     * @return {object} The transformed object.
+     * Convert data into an object
+     * @param {array} arr - An array which fit the template
+     * @return {object} The transformed object
      */
     objectify(arr) {
         // arr is a single array
@@ -33,8 +35,8 @@ class Listore {
 
     /**
      * Converts an object to an array
-     * @param {object} obj - An object which fit the template.
-     * @return {array} The transformed array.
+     * @param {object} obj - An object which fit the template
+     * @return {array} The transformed array
      */
     arrayify(obj) {
         const t = this[$tpl],
@@ -49,7 +51,7 @@ class Listore {
      * @param {string|number} k - The keyName or the index of the template
      * @param {*} v - The value which we want it equal to
      * @param {number} p - The starting position
-     * @return {number} The position.
+     * @return {number} The position
      */
     position(k, v, p = 0) {
         if (p > this[$source].length - 1) return -1;
@@ -66,7 +68,7 @@ class Listore {
     /**
      * Modify data
      * @param {array|object} values - The value to be converted
-     * @return {array} The data which fit the template.
+     * @return {array} The data which fit the template
      */
     modify(values) {
         values = Array.isArray(values) ? values : this.arrayify(values);
@@ -108,11 +110,11 @@ class Listore {
     }
 
     /**
-     * Gets a wanted data
+     * Get a wanted data
      * @param {string} k - The keyName
      * @param {*} v - The value which we want it equal to
      * @param {number} p - The starting position
-     * @return {array} The wanted data.
+     * @return {array} The wanted data
      */
     getItem(k, v, p = 0) {
         const pos = this.position(k, v, p);
@@ -188,8 +190,8 @@ class Listore {
     from = objs => objs.forEach(e => this.setItem(this.modify(e)));
 
     /**
-     * Convert whole data into an array which contain objects.
-     * @return {array} The wanted array, which is useful for searching.
+     * Convert whole data into an array which contain objects
+     * @return {array} The wanted array, which is useful for searching
      */
     toObject = () => this[$source].map(this.objectify.bind(this));
     toString = () => JSON.stringify(this.toObject());
