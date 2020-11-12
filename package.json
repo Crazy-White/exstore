@@ -1,6 +1,6 @@
 {
     "name": "listore",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "store some data as a list",
     "main": "dist/listore.cjs.js",
     "module": "dist/listore.esm.js",
