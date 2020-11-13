@@ -1,15 +1,21 @@
 import clone from './clone.js';
 
-const $source = Symbol('source array');
-const $template = Symbol('complied template');
-const $tpl = Symbol('string template');
+const $source = Symbol('Source: array');
+const $template = Symbol('Template: complied');
+const $tpl = Symbol('Template: string');
 
-/** Class Listore */
 class Listore {
     [$source] = [];
     /**
      * Generate an instance of Listore
-     * @param {array} template - The template for values
+     * @example
+     * const storage = new Listore(['id', 'number', true], ['name', 'string'], ['info', 'string|number'], 'tips')
+     * @param {array} template - The template for values, which corresponds to the Listore's instance function. As the example shows, the template contains many arrays(or string), each of which has three elements
+     * like [keyName, typeCommand = '*', isUnique = false] if it is a string, such as 'keyName', equal to ['keyName']. You can use template property to see the complied array template
+     * like storage.template , changes to this array is no use as it is just a clone.
+     * String::keyName Corresponds to the key name of the object generated when the toObject function is called
+     * String::typeCommand Allowed type, using the Typeof command, so 'array' doesn't work, 'object' allows all instances of object. Allows multiple types to be separated by '|', case insensitive. And '*' indicates that any type is allowed
+     * Boolean::isUnique Whether repetition is allowed. This is useful when you need unique values
      */
     constructor(...template) {
         this[$template] = template.map(e => {
@@ -99,6 +105,8 @@ class Listore {
 
     /**
      * Reset a data
+     * @example
+     * storage.resetItem(0, [0, 'Amy', 'balabala...', null]); // => true
      * @param {number} pos - The position of the target data
      * @param {array} newValues - The new data
      * @return {boolean} if success
@@ -111,6 +119,8 @@ class Listore {
 
     /**
      * Get a wanted data
+     * @example
+     * storage.getItem('name', 'Amy'); // => [0, 'Amy', 'balabala...', null]
      * @param {string} k - The keyName
      * @param {*} v - The value which we want it equal to
      * @param {number} p - The starting position
@@ -124,6 +134,8 @@ class Listore {
 
     /**
      * Set a new data
+     * @example
+     * storage.setItem([0, 'Amy', 'balabala...', null]); // => true
      * @param {array|object} values - The value to be set, which must fit the template
      * @return {boolean} If success
      */
@@ -172,12 +184,18 @@ class Listore {
      */
     sort = f => this[$source].sort(f) && this.source;
 
-    /** @member {array} */
+    /**
+     * A cloned compiled template
+     * @member {array}
+     */
     get template() {
         return clone(this[$template]);
     }
 
-    /** @member {array} */
+    /**
+     * A cloned source
+     * @member {array}
+     */
     get source() {
         return clone(this[$source]);
     }

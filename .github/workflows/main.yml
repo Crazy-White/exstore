@@ -17,8 +17,8 @@ jobs:
               with:
                   source_dir: ./src
                   output_dir: ./doc
-                  config_file: conf.json
-                  template: better-docs
+                  config_file: jsdoc.config.json
+                  template: minami
                   front_page: README.md
 
             - name: Deploy
