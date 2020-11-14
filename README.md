@@ -5,7 +5,7 @@
 
 Store some data as a list.  
 Using this library, it is recommended that you store something that could be stringified.  
-See its doc <https://crazy-white.github.io/listore/Listore.html>  
+See its doc <https://crazy-white.github.io/listore/Listore.html>
 
 ## install
 

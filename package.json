@@ -6,7 +6,7 @@
     "module": "dist/listore.esm.js",
     "browser": "dist/listore.umd.js",
     "scripts": {
-        "dev": "rollup src/listore.js --file dist/listore.js --format cjs",
+        "dev": "rollup -c && node",
         "test": "xdg-open test/index.html",
         "prettier": "prettier --write --single-quote --tab-width 4 --print-width 160 --arrow-parens avoid",
         "rollup": "rollup -c",

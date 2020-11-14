@@ -1,39 +1,40 @@
 import clone from './clone.js';
 
 const $source = Symbol('Source: array');
-const $template = Symbol('Template: complied');
 const $tpl = Symbol('Template: string');
 
 class Listore {
     [$source] = [];
     /**
-     * Generate an instance of Listore
+     * Generate an instance of Listore by a template <br/>
+     * As the example shows below, the template contains many arrays(or string), each of which has three elements
+     * like [keyName, typeCommand = '*', isUnique = false]. if it is a string, such as 'keyName', equal to ['keyName']. <br/>
+     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no use as it is just a clone. <br/>
+     * String::keyName Corresponds to the key name of the object generated when the toObject function is called <br/>
+     * String::typeCommand Allowed type, using the Typeof command, so 'array' doesn't work, 'object' allows all instances of object. Allows multiple types to be separated by '|', case insensitive. And '*' indicates that any type is allowed <br/>
+     * Boolean::isUnique Whether repetition is allowed. This is useful when you need item to be unique <br/>
+     * @param {array} template - The template for item, which corresponds to the Listore's instance function.
      * @example
      * const storage = new Listore(['id', 'number', true], ['name', 'string'], ['info', 'string|number'], 'tips')
-     * @param {array} template - The template for values, which corresponds to the Listore's instance function. As the example shows, the template contains many arrays(or string), each of which has three elements
-     * like [keyName, typeCommand = '*', isUnique = false] if it is a string, such as 'keyName', equal to ['keyName']. You can use template property to see the complied array template
-     * like storage.template , changes to this array is no use as it is just a clone.
-     * String::keyName Corresponds to the key name of the object generated when the toObject function is called
-     * String::typeCommand Allowed type, using the Typeof command, so 'array' doesn't work, 'object' allows all instances of object. Allows multiple types to be separated by '|', case insensitive. And '*' indicates that any type is allowed
-     * Boolean::isUnique Whether repetition is allowed. This is useful when you need unique values
      */
     constructor(...template) {
-        this[$template] = template.map(e => {
+        this.template = template.map(e => {
             if (typeof e[0] !== 'string') throw new Error('keyName must be string');
-            if (Array.isArray(e)) return [e[0], e[1] || '*', Boolean(e[2])];
-            else return [e, '*', false];
+            if (Array.isArray(e)) return Object.freeze([e[0], e[1] || '*', Boolean(e[2])]);
+            else return Object.freeze([e, '*', false]); // ensure each array is freezed
         });
-        this[$tpl] = this[$template].map(e => e[0]);
+        this[$tpl] = this.template.map(e => e[0]); // keys template
+        Object.freeze(this.template);
+        Object.freeze(this[$tpl]);
         if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('keyName cannot be the same');
     }
 
     /**
-     * Convert data into an object
-     * @param {array} arr - An array which fit the template
+     * Convert an item into an object
+     * @param {array} arr - An array(item array) which fit the template
      * @return {object} The transformed object
      */
     objectify(arr) {
-        // arr is a single array
         const obj = {};
         for (let i = 0, len = arr.length; i < len; i++) obj[this[$tpl][i]] = arr[i];
         return obj;
@@ -53,7 +54,7 @@ class Listore {
     }
 
     /**
-     * Gets the position of a data
+     * Gets the position of an item
      * @param {string|number} k - The keyName or the index of the template
      * @param {*} v - The value which we want it equal to
      * @param {number} p - The starting position
@@ -72,17 +73,17 @@ class Listore {
     }
 
     /**
-     * Modify data
-     * @param {array|object} values - The value to be converted
-     * @return {array} The data which fit the template
+     * Modify an item
+     * @param {array|object} item - The item to be converted
+     * @return {array} The item which fit the template
      */
-    modify(values) {
-        values = Array.isArray(values) ? values : this.arrayify(values);
+    modify(item) {
+        item = Array.isArray(item) ? item : this.arrayify(item);
         const arr = Array(this[$tpl].length).fill(null);
-        for (let i = 0, len = values.length; i < len; i++) {
-            const data = values[i];
-            const [keyName, types, isUnique] = this[$template][i];
-            let flag = false;
+        for (let i = 0, len = item.length; i < len; i++) {
+            const data = item[i];
+            const [keyName, types, isUnique] = this.template[i];
+            let flag = false; // if allow item to be added
             if (types.includes('*')) {
                 flag = true;
             } else {
@@ -94,7 +95,7 @@ class Listore {
                     .forEach(e => (typeof data === e ? (flag = true) : ''));
             }
             if (flag) {
-                if (this.getItem(keyName, data)) throw new Error('Key already exists');
+                if (isUnique && this.getItem(keyName, data)) throw new Error('Key already exists');
                 else arr[i] = data;
             } else {
                 throw new Error('This type of input is not allowed');
@@ -104,27 +105,27 @@ class Listore {
     }
 
     /**
-     * Reset a data
+     * Reset an item
      * @example
      * storage.resetItem(0, [0, 'Amy', 'balabala...', null]); // => true
-     * @param {number} pos - The position of the target data
-     * @param {array} newValues - The new data
-     * @return {boolean} if success
+     * @param {number} pos - The position of the target item
+     * @param {array} newItem - The new item
+     * @return {this} allow chain calls
      */
-    resetItem(pos, newValues) {
-        const newVal = this.modify(newValues);
+    resetItem(pos, newItem) {
+        const newVal = this.modify(newItem);
         this[$source][pos] = newVal;
-        return true;
+        return this;
     }
 
     /**
-     * Get a wanted data
+     * Get a wanted item
      * @example
      * storage.getItem('name', 'Amy'); // => [0, 'Amy', 'balabala...', null]
      * @param {string} k - The keyName
      * @param {*} v - The value which we want it equal to
      * @param {number} p - The starting position
-     * @return {array} The wanted data
+     * @return {array} The wanted item
      */
     getItem(k, v, p = 0) {
         const pos = this.position(k, v, p);
@@ -133,36 +134,36 @@ class Listore {
     }
 
     /**
-     * Set a new data
+     * Set a new item(item array)
      * @example
      * storage.setItem([0, 'Amy', 'balabala...', null]); // => true
-     * @param {array|object} values - The value to be set, which must fit the template
-     * @return {boolean} If success
+     * @param {array|object} item - The item to be set, which must fit the template
+     * @return {this} allow chain calls
      */
-    setItem(values) {
+    setItem(item) {
         try {
-            this[$source].push(this.modify(values));
-            return true;
+            this[$source].push(this.modify(item));
+            return this;
         } catch (err) {
-            return false;
+            throw err;
         }
     }
 
     /**
-     * Insert a data by position
-     * @param {number} pos - The position of the before data
-     * @param {array|object} values - The new data
-     * @return {boolean} if success
+     * Insert an item by position
+     * @param {number} pos - The position of the before an item
+     * @param {array|object} item - The new item
+     * @return {this} allow chain calls
      */
-    insert(pos, values) {
+    insert(pos, item) {
         if (pos > this[$source].length - 1) return false;
-        this[$source].splice(pos, 0, this.modify(values));
-        return true;
+        this[$source].splice(pos, 0, this.modify(item));
+        return this;
     }
 
     /**
-     * Deleta a data by position
-     * @param {number} pos - The position of the target data
+     * Deleta an item by position
+     * @param {number} pos - The position of the target item
      * @return {boolean} if success
      */
     delete(pos) {
@@ -172,25 +173,17 @@ class Listore {
     }
 
     /**
-     * Reverse all data
-     * @return {array} raw data
+     * Reverse all items
+     * @return {array} raw source
      */
     reverse = () => this[$source].reverse() && this.source;
 
     /**
-     * Sort all data
+     * Sort all items
      * @param {function} f - The handler function
-     * @return {array} raw data
+     * @return {array} raw source
      */
     sort = f => this[$source].sort(f) && this.source;
-
-    /**
-     * A cloned compiled template
-     * @member {array}
-     */
-    get template() {
-        return clone(this[$template]);
-    }
 
     /**
      * A cloned source
@@ -201,15 +194,16 @@ class Listore {
     }
 
     /**
-     * Set many data from a array
+     * Set many items from an array or object
      * @param {array} objs - An array contains many objects or arrays, which must fit the template
      * @return {undefind}
      */
     from = objs => objs.forEach(e => this.setItem(this.modify(e)));
 
     /**
-     * Convert whole data into an array which contain objects
-     * @return {array} The wanted array, which is useful for searching
+     * Convert whole items(the source) into an array which contain objects <br/>
+     * This is a very useful function that you should call when querying data
+     * @return {array} Complied source
      */
     toObject = () => this[$source].map(this.objectify.bind(this));
     toString = () => JSON.stringify(this.toObject());
@@ -221,6 +215,11 @@ class Listore {
      * @static
      */
     static clone = (...args) => clone(...args);
+    static from(objs) {
+        const s = new this(...Object.keys(objs[0]));
+        s.from(objs);
+        return s;
+    }
 }
 
 export default Listore;
