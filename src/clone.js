@@ -96,7 +96,7 @@ var clone = (function () {
                         },
                         function (err) {
                             reject(_clone(err, depth - 1));
-                        }
+                        },
                     );
                 });
             } else if (clone.__isArray(parent)) {

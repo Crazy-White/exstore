@@ -4,3 +4,4 @@
 .github
 *.config.js
 *.config.json
+.prettierrc.yaml

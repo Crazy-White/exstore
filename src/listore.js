@@ -4,12 +4,16 @@ const $source = Symbol('Source: array');
 const $tpl = Symbol('Template: string');
 
 class Listore {
+    /**
+     * The source array, which is protected
+     * @type {array}
+     */
     [$source] = [];
     /**
      * Generate an instance of Listore by a template <br/>
      * As the example shows below, the template contains many arrays(or string), each of which has three elements
      * like [keyName, typeCommand = '*', isUnique = false]. if it is a string, such as 'keyName', equal to ['keyName']. <br/>
-     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no use as it is just a clone. <br/>
+     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed. <br/>
      * String::keyName Corresponds to the key name of the object generated when the toObject function is called <br/>
      * String::typeCommand Allowed type, using the Typeof command, so 'array' doesn't work, 'object' allows all instances of object. Allows multiple types to be separated by '|', case insensitive. And '*' indicates that any type is allowed <br/>
      * Boolean::isUnique Whether repetition is allowed. This is useful when you need item to be unique <br/>
@@ -101,7 +105,7 @@ class Listore {
                 throw new Error('This type of input is not allowed');
             }
         }
-        return clone(arr);
+        return clone(arr); // It's important that clone this array, so as to avoid external modifications
     }
 
     /**
@@ -215,6 +219,12 @@ class Listore {
      * @static
      */
     static clone = (...args) => clone(...args);
+
+    /**
+     * Automatic from function
+     * @return {undefind}
+     * @static
+     */
     static from(objs) {
         const s = new this(...Object.keys(objs[0]));
         s.from(objs);
