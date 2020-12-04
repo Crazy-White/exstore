@@ -12,19 +12,21 @@ class Listore {
     [$source] = [];
     /**
      * Generate an instance of Listore by a template<br/>
-     * As the example shows below, the template contains many objects(or string) and the config is an object<br/>
+     * As the example shows below, the template contains many objects(or string) and the config is an object<br/><br/>
      * So far we have four settings in the <i>template</i> : {key,isUique,check,fmt}<br/>
      * <strong>key</strong>: Corresponds to the key name of the object generated when the toObject function is called<br/>
      * <strong>isUique</strong>: Whether repetition is allowed. This is useful when you need item to be unique<br/>
      * <strong>check</strong>: An array of functions is included to check if the input is correct. The new data is checked by each function in the array (the function should return true or false). If the return value != true, the program reports an error<br/>
      * <strong>fmt</strong>: A function used to format the input is run before the check function, which actually checks the formatted data<br/>
-     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed<br/>
+     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed<br/><br/>
      * As for config, we have four settings in the <i>config</i> : {onset, ondelete}<br/>
      * <strong>onset</strong>: callback -> instantiated(listore), setItem(the set item), calledFunctionName(string)<br/>
      * <strong>ondelete</strong>: Same as above<br/>
      * @param {array} template - The template for item, which corresponds to the Listore's instance function
      * @param {object} config - Configuration
      * @example
+const isString = e => typeof e === 'string';
+const isNumber = e => typeof e === 'number';
 const storage = new Listore(
     [
         { key: 'name', isUique: false, fmt: e => e.trim(), check: [isString, e => e.length > 1] },
