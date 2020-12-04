@@ -2,14 +2,14 @@
     "name": "listore",
     "version": "0.0.4",
     "description": "store some data as a list",
-    "main": "dist/listore.cjs.js",
-    "module": "dist/listore.esm.js",
-    "browser": "dist/listore.umd.js",
+    "main": "dist/listore.min.js",
+    "module": "dist/listore.esm.min.js",
+    "browser": "dist/listore.min.js",
     "scripts": {
         "dev": "rollup -c && node",
         "test": "xdg-open test/index.html",
-        "terser": "terser dist/listore.umd.js -o dist/listore.min.js -c",
-        "build": "prettier --write ./src && rollup -c && npm run terser"
+        "terser": "terser dist/listore.js -o dist/listore.min.js -c && terser dist/listore.esm.js -o dist/listore.esm.min.js -c",
+        "build": "prettier --write ./src && rollup -c && terser dist/listore.js -o dist/listore.min.js -c && terser dist/listore.esm.js -o dist/listore.esm.min.js -c"
     },
     "repository": {
         "type": "git",

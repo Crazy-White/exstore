@@ -1,6 +1,7 @@
 import clone from './clone.js';
 
 const $source = Symbol('Source: array');
+const $conf = Symbol('Configure: object');
 const $tpl = Symbol('Template: string');
 
 class Listore {
@@ -10,27 +11,65 @@ class Listore {
      */
     [$source] = [];
     /**
-     * Generate an instance of Listore by a template <br/>
-     * As the example shows below, the template contains many arrays(or string), each of which has three elements
-     * like [keyName, typeCommand = '*', isUnique = false]. if it is a string, such as 'keyName', equal to ['keyName']. <br/>
-     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed. <br/>
-     * String::keyName Corresponds to the key name of the object generated when the toObject function is called <br/>
-     * String::typeCommand Allowed type, using the Typeof command, so 'array' doesn't work, 'object' allows all instances of object. Allows multiple types to be separated by '|', case insensitive. And '*' indicates that any type is allowed <br/>
-     * Boolean::isUnique Whether repetition is allowed. This is useful when you need item to be unique <br/>
-     * @param {array} template - The template for item, which corresponds to the Listore's instance function.
+     * Generate an instance of Listore by a template<br/>
+     * As the example shows below, the template contains many objects(or string) and the config is an object<br/>
+     * So far we have four settings in the <i>template</i> : {key,isUique,check,fmt}<br/>
+     * <strong>key</strong>: Corresponds to the key name of the object generated when the toObject function is called<br/>
+     * <strong>isUique</strong>: Whether repetition is allowed. This is useful when you need item to be unique<br/>
+     * <strong>check</strong>: An array of functions is included to check if the input is correct. The new data is checked by each function in the array (the function should return true or false). If the return value != true, the program reports an error<br/>
+     * <strong>fmt</strong>: A function used to format the input is run before the check function, which actually checks the formatted data<br/>
+     * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed<br/>
+     * As for config, we have four settings in the <i>config</i> : {onset, ondelete}<br/>
+     * <strong>onset</strong>: callback -> instantiated(listore), setItem(the set item), calledFunctionName(string)<br/>
+     * <strong>ondelete</strong>: Same as above<br/>
+     * @param {array} template - The template for item, which corresponds to the Listore's instance function
+     * @param {object} config - Configuration
      * @example
-     * const storage = new Listore(['id', 'number', true], ['name', 'string'], ['info', 'string|number'], 'tips')
+const storage = new Listore(
+    [
+        { key: 'name', isUique: false, fmt: e => e.trim(), check: [isString, e => e.length > 1] },
+        { key: 'id', isUique: false, check: [isNumber] },
+        'info',
+        'note',
+    ],
+    {
+        onset: (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`),
+        ondelete: (storage, item, fn) => null, // anything you want to do
+    },
+);
      */
-    constructor(...template) {
-        this.template = template.map(e => {
-            if (typeof e[0] !== 'string') throw new Error('keyName must be string');
-            if (Array.isArray(e)) return Object.freeze([e[0], e[1] || '*', Boolean(e[2])]);
-            else return Object.freeze([e, '*', false]); // ensure each array is freezed
-        });
-        this[$tpl] = this.template.map(e => e[0]); // keys template
-        Object.freeze(this.template);
-        Object.freeze(this[$tpl]);
-        if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('keyName cannot be the same');
+    constructor(template, config) {
+        // template: [{key,isUnique,check,fmt}]
+        if (!Array.isArray(template)) throw new Error('template should be an array');
+        this[$conf] = Object.freeze(config) || {}; // {onset, ondelete}
+        this.template = Object.freeze(template);
+        this[$tpl] = Object.freeze(this.template.map(e => (typeof e === 'string' ? e : e.key))); // keys template
+        if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('Key cannot be the same');
+    }
+
+    /**
+     * Modify an item
+     * @param {array|object} item - The item to be converted
+     * @return {array} The item which fit the template
+     */
+    modify(item) {
+        item = Array.isArray(item) ? item : this.arrayify(item);
+        const arr = Array(this[$tpl].length).fill(null);
+
+        for (let i = 0, len = item.length; i < len; i++) {
+            const keyName = this[$tpl][i];
+            const { check: checkers = [], fmt: formatter, isUnique } = this.template[i];
+            const data = formatter ? formatter(item[i]) : item[i]; // target
+
+            checkers.forEach(checker => {
+                if (!checker(data)) throw new Error('This item is not allow by custom checker');
+            });
+
+            if (isUnique && this.getItem(keyName, data)) throw new Error('Key already exists');
+            else arr[i] = data;
+        }
+
+        return clone(arr); // It's important that clone this array, so as to avoid external modifications
     }
 
     /**
@@ -58,57 +97,6 @@ class Listore {
     }
 
     /**
-     * Gets the position of an item
-     * @param {string|number} k - The keyName or the index of the template
-     * @param {*} v - The value which we want it equal to
-     * @param {number} p - The starting position
-     * @return {number} The position
-     */
-    position(k, v, p = 0) {
-        if (p > this[$source].length - 1) return -1;
-        const index = typeof k === 'number' ? k : this[$tpl].indexOf(k);
-        if (index < 0) return -1;
-        for (let i = p, len = this[$source].length; i < len; i++) {
-            if (this[$source][i][index] === v) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Modify an item
-     * @param {array|object} item - The item to be converted
-     * @return {array} The item which fit the template
-     */
-    modify(item) {
-        item = Array.isArray(item) ? item : this.arrayify(item);
-        const arr = Array(this[$tpl].length).fill(null);
-        for (let i = 0, len = item.length; i < len; i++) {
-            const data = item[i];
-            const [keyName, types, isUnique] = this.template[i];
-            let flag = false; // if allow item to be added
-            if (types.includes('*')) {
-                flag = true;
-            } else {
-                // handler the string command, TODO: filter the wrong command
-                types
-                    .replace(' ', '')
-                    .toLowerCase()
-                    .split('|')
-                    .forEach(e => (typeof data === e ? (flag = true) : ''));
-            }
-            if (flag) {
-                if (isUnique && this.getItem(keyName, data)) throw new Error('Key already exists');
-                else arr[i] = data;
-            } else {
-                throw new Error('This type of input is not allowed');
-            }
-        }
-        return clone(arr); // It's important that clone this array, so as to avoid external modifications
-    }
-
-    /**
      * Reset an item
      * @example
      * storage.resetItem(0, [0, 'Amy', 'balabala...', null]); // => true
@@ -119,6 +107,7 @@ class Listore {
     resetItem(pos, newItem) {
         const newVal = this.modify(newItem);
         this[$source][pos] = newVal;
+        this[$conf].onset && this[$conf].onset(this, newVal, 'resetItem'); // trace
         return this;
     }
 
@@ -146,11 +135,32 @@ class Listore {
      */
     setItem(item) {
         try {
-            this[$source].push(this.modify(item));
+            const newItem = this.modify(item);
+            this[$source].push(newItem);
+            this[$conf].onset && this[$conf].onset(this, newItem, 'setItem'); // trace
             return this;
         } catch (err) {
             throw err;
         }
+    }
+
+    /**
+     * Gets the position of an item
+     * @param {string|number} k - The keyName or the index of the template
+     * @param {*} v - The value which we want it equal to
+     * @param {number} p - The starting position
+     * @return {number} The position
+     */
+    position(k, v, p = 0) {
+        if (p > this[$source].length - 1) return -1;
+        const index = typeof k === 'number' ? k : this[$tpl].indexOf(k);
+        if (index < 0) return -1;
+        for (let i = p, len = this[$source].length; i < len; i++) {
+            if (this[$source][i][index] === v) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -161,7 +171,9 @@ class Listore {
      */
     insert(pos, item) {
         if (pos > this[$source].length - 1) return false;
-        this[$source].splice(pos, 0, this.modify(item));
+        const newItem = this.modify(item);
+        this[$source].splice(pos, 0, newItem);
+        this[$conf].onset && this[$conf].onset(this, newItem, 'insert'); // trace
         return this;
     }
 
@@ -172,7 +184,9 @@ class Listore {
      */
     delete(pos) {
         if (pos > this[$source].length - 1) return -1;
+        const deleted = clone(this[$source][pos]);
         this[$source].splice(pos, 1);
+        this[$conf].ondelete && this[$conf].ondelete(this, deleted, 'delete'); // trace
         return true;
     }
 
@@ -226,7 +240,7 @@ class Listore {
      * @static
      */
     static from(objs) {
-        const s = new this(...Object.keys(objs[0]));
+        const s = new this(Object.keys(objs[0]));
         s.from(objs);
         return s;
     }
