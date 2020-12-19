@@ -6,12 +6,14 @@
 ![download](https://img.shields.io/npm/dt/listore)
 
 Store some data as a list.  
+
 Using this library, it is recommended that you store something that could be stringified.  
-See its doc <https://crazy-white.github.io/Listore/Listore.html>
+
+See its doc <https://listore.js.org/Listore.html>
 
 _Notice_: The 0.x.x version is extremely unstable. Please specify the version number when using
 
-## install
+## installation
 
 ```sh
 $ npm i listore

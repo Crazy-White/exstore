@@ -1,7 +1,6 @@
 import clone from './clone.js';
 
 const $source = Symbol('Source: array');
-const $conf = Symbol('Configure: object');
 const $tpl = Symbol('Template: string');
 
 class Listore {
@@ -13,17 +12,15 @@ class Listore {
     /**
      * Generate an instance of Listore by a template<br/>
      * As the example shows below, the template contains many objects(or string) and the config is an object<br/><br/>
-     * So far we have four settings in the <i>template</i> : {key,isUique,check,fmt}<br/>
+     * So far we have some settings in the <i>template</i> : {key, isUique, check, fmt}<br/>
      * <strong>key</strong>: Corresponds to the key name of the object generated when the toObject function is called<br/>
      * <strong>isUique</strong>: Whether repetition is allowed. This is useful when you need item to be unique<br/>
      * <strong>check</strong>: An array of functions is included to check if the input is correct. The new data is checked by each function in the array (the function should return true or false). If the return value != true, the program reports an error<br/>
      * <strong>fmt</strong>: A function used to format the input is run before the check function, which actually checks the formatted data<br/>
      * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed<br/><br/>
-     * As for config, we have four settings in the <i>config</i> : {onset, ondelete}<br/>
-     * <strong>onset</strong>: callback -> instantiated(listore), setItem(the set item), calledFunctionName(string)<br/>
-     * <strong>ondelete</strong>: Same as above<br/>
+     * <strong>onchange</strong>: callback -> instantiated(listore), setItem(the set item or deleted), calledFunctionName(string)<br/>
      * @param {array} template - The template for item, which corresponds to the Listore's instance function
-     * @param {object} config - Configuration
+     * @param {function} onchange - onchange
      * @example
 const isString = e => typeof e === 'string';
 const isNumber = e => typeof e === 'number';
@@ -34,16 +31,13 @@ const storage = new Listore(
         'info',
         'note',
     ],
-    {
-        onset: (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`),
-        ondelete: (storage, item, fn) => null, // anything you want to do
-    },
+    (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`)
 );
      */
-    constructor(template, config) {
+    constructor(template, onchange) {
         // template: [{key,isUnique,check,fmt}]
         if (!Array.isArray(template)) throw new Error('template should be an array');
-        this[$conf] = Object.freeze(config) || {}; // {onset, ondelete}
+        this.onchange = onchange; // be cautious in case it is undefined
         this.template = Object.freeze(template);
         this[$tpl] = Object.freeze(this.template.map(e => (typeof e === 'string' ? e : e.key))); // keys template
         if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('Key cannot be the same');
@@ -109,7 +103,7 @@ const storage = new Listore(
     resetItem(pos, newItem) {
         const newVal = this.modify(newItem);
         this[$source][pos] = newVal;
-        this[$conf].onset && this[$conf].onset(this, newVal, 'resetItem'); // trace
+        this.onchange && this.onchange(this, newVal, 'resetItem'); // trace
         return this;
     }
 
@@ -139,7 +133,7 @@ const storage = new Listore(
         try {
             const newItem = this.modify(item);
             this[$source].push(newItem);
-            this[$conf].onset && this[$conf].onset(this, newItem, 'setItem'); // trace
+            this.onchange && this.onchange(this, newItem, 'setItem'); // trace
             return this;
         } catch (err) {
             throw err;
@@ -175,7 +169,7 @@ const storage = new Listore(
         if (pos > this[$source].length - 1) return false;
         const newItem = this.modify(item);
         this[$source].splice(pos, 0, newItem);
-        this[$conf].onset && this[$conf].onset(this, newItem, 'insert'); // trace
+        this.onchange && this.onchange(this, newItem, 'insert'); // trace
         return this;
     }
 
@@ -188,8 +182,12 @@ const storage = new Listore(
         if (pos > this[$source].length - 1) return -1;
         const deleted = clone(this[$source][pos]);
         this[$source].splice(pos, 1);
-        this[$conf].ondelete && this[$conf].ondelete(this, deleted, 'delete'); // trace
+        this.onchange && this.onchange(this, deleted, 'delete'); // trace
         return true;
+    }
+    
+    extend(fn, func) {
+        
     }
 
     /**

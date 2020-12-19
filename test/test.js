@@ -6,8 +6,8 @@ const noError = f => {
     }
 };
 const Listore = require('../dist/listore.js');
-let a = new Listore([{ key: 'id', check: [], isUnique: false }, 'key', 'name'], {
-    onset: (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`),
+let a = new Listore([{ key: 'id', check: [], isUnique: false }, 'key', 'name'], 
+    (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`)
 });
 let f = () => {
     [
