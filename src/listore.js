@@ -12,11 +12,12 @@ class Listore {
     /**
      * Generate an instance of Listore by a template<br/>
      * As the example shows below, the template contains many objects(or string) and the config is an object<br/><br/>
-     * So far we have some settings in the <i>template</i> : {key, isUique, check, fmt}<br/>
+     * So far we have some settings in the <i>template</i> : {key, isUique, check, fmt, default}<br/>
      * <strong>key</strong>: Corresponds to the key name of the object generated when the toObject function is called<br/>
      * <strong>isUique</strong>: Whether repetition is allowed. This is useful when you need item to be unique<br/>
      * <strong>check</strong>: An array of functions is included to check if the input is correct. The new data is checked by each function in the array (the function should return true or false). If the return value != true, the program reports an error<br/>
      * <strong>fmt</strong>: A function used to format the input is run before the check function, which actually checks the formatted data<br/>
+     * <strong>default</strong>: Default value, if set, when fail to check, it will be used<br/>
      * You can get the template attribute to see the complied array template, such as `storage.template`, changes to this array is no allowed as it is freezed<br/><br/>
      * <strong>onchange</strong>: callback -> instantiated(listore), setItem(the set item or deleted), calledFunctionName(string)<br/>
      * @param {array} template - The template for item, which corresponds to the Listore's instance function
@@ -24,23 +25,33 @@ class Listore {
      * @example
 const isString = e => typeof e === 'string';
 const isNumber = e => typeof e === 'number';
-const storage = new Listore(
-    [
-        { key: 'name', isUique: false, fmt: e => e.trim(), check: [isString, e => e.length > 1] },
-        { key: 'id', isUique: false, check: [isNumber] },
-        'info',
-        'note',
-    ],
-    (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`)
-);
+const tpl = [
+    { key: 'name', isUique: false, fmt: e => e.trim(), check: [isString, e => e.length > 1] },
+    { key: 'id', isUique: false, check: [isNumber], default: -1 },
+    'info',
+    'note',
+];
+const onoperate = (storage, item, fn) => console.log(`New item: ${JSON.stringify(item)} is set by function "${fn}"`);
+const storage = new Listore(tpl, onoperate);
+
      */
     constructor(template, onchange) {
-        // template: [{key,isUnique,check,fmt}]
-        if (!Array.isArray(template)) throw new Error('template should be an array');
+        // template: [{key,isUnique,check,fmt,default}]
+        if (!Array.isArray(template)) throw new Error("Listore: 'template' should be an array");
         this.onchange = onchange; // be cautious in case it is undefined
-        this.template = Object.freeze(template);
+        this.template = Object.freeze(clone(template));
         this[$tpl] = Object.freeze(this.template.map(e => (typeof e === 'string' ? e : e.key))); // keys template
-        if (new Set(this[$tpl]).size !== this[$tpl].length) throw new Error('Key cannot be the same');
+        if (new Set(this[$tpl]).size !== template.length) throw new Error("Listore: 'key' cannot be the same"); // check
+        for (let tpl of this.template) {
+            if (typeof tpl === 'string') continue;
+            if (typeof tpl.key !== 'string') throw new Error("Listore: 'key' must be a string");
+            if (!!tpl.fmt) if (typeof tpl.fmt !== 'function') throw new Error("Listore: 'fmt' must be a function");
+            if (!!tpl.check) if (!Array.isArray(tpl.check)) throw new Error("Listore: 'check' must be a array");
+            for (let checker of tpl.check) {
+                if (typeof checker !== 'function') throw new Error("Listore: 'check' must be a function array");
+                if (tpl.default) if (!checker(tpl.default)) throw new Error("Listore: 'default' should fit checkers");
+            }
+        }
     }
 
     /**
@@ -53,15 +64,22 @@ const storage = new Listore(
         const arr = Array(this[$tpl].length).fill(null);
 
         for (let i = 0, len = item.length; i < len; i++) {
+            let tpl = this.template[i];
             const keyName = this[$tpl][i];
-            const { check: checkers = [], fmt: formatter, isUnique } = this.template[i];
-            const data = formatter ? formatter(item[i]) : item[i]; // target
+            const { check: checkers = [], fmt: formatter, default: defaultValue, isUnique } = tpl;
+            let data = formatter ? formatter(item[i]) : item[i]; // target
 
             checkers.forEach(checker => {
-                if (!checker(data)) throw new Error('This item is not allow by custom checker');
+                if (!checker(data)) {
+                    if (defaultValue) {
+                        data = defaultValue;
+                    } else {
+                        throw new Error('Listore: this item is not allow by custom checker');
+                    }
+                }
             });
 
-            if (isUnique && this.getItem(keyName, data)) throw new Error('Key already exists');
+            if (isUnique && this.getItem(keyName, data)) throw new Error('Listore: key already exists');
             else arr[i] = data;
         }
 
@@ -185,10 +203,8 @@ const storage = new Listore(
         this.onchange && this.onchange(this, deleted, 'delete'); // trace
         return true;
     }
-    
-    extend(fn, func) {
-        
-    }
+
+    extend(fn, func) {}
 
     /**
      * Reverse all items

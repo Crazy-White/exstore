@@ -5,9 +5,9 @@
 ![license](https://img.shields.io/npm/l/listore)
 ![download](https://img.shields.io/npm/dt/listore)
 
-Store some data as a list.  
+Store some data as a list.
 
-Using this library, it is recommended that you store something that could be stringified.  
+Using this library, it is recommended that you store something that could be stringified.
 
 See its doc <https://listore.js.org/Listore.html>
 
