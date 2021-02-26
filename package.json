@@ -1,7 +1,7 @@
 {
     "name": "listore",
     "version": "0.1.1",
-    "description": "store some data as a list",
+    "description": "Store data without defining key names multiple times",
     "keywords": [
         "storage"
     ],
