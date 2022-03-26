@@ -8,9 +8,10 @@
 Store data without defining key names multiple times.
 
 ```js
+import Listore from "listore";
 const storage = new Listore(['id', 'name', 'info']);
-storage.setItem([0, 'test1', 'no desciption']);
-storage.setItem([1, 'test2', 'no desciption']);
+storage.append(0, 'test1', 'no desciption');
+storage.append(1, 'test2', 'no desciption');
 storage.toObject(); // => [{ id: 0, name: 'test1', info: 'no desciption' }, { id: 1, name: 'test2', info: 'no desciption' }]
 ```
 
@@ -24,4 +25,4 @@ $ npm i listore
 
 ## Documentation
 
-<https://listore.js.org/Listore.html>
+<https://listore.js.org/classes/default.html>

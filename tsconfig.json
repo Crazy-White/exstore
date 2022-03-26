@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "strict": true,
+        "declaration": true,
+        "sourceMap": true,
+        "declarationDir": "lib",
+        "outDir": "lib",
+        "importHelpers": true,
+        "removeComments": true,
+        "experimentalDecorators": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "typeRoots": ["node_modules/@types", "src/types"]
+    },
+    "include": ["src"],
+    "exclude": ["node_modules", "lib"]
+}

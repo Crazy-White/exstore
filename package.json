@@ -1,28 +1,29 @@
 {
     "name": "listore",
+    "type": "module",
     "version": "0.1.1",
     "description": "Store data without defining key names multiple times",
     "keywords": [
         "storage"
     ],
-    "main": "dist/listore.min.js",
-    "module": "src/listore.js",
-    "browser": "dist/listore.min.js",
+    "main": "lib/listore.min.js",
+    "module": "lib/listore.js",
+    "browser": "lib/listore.min.js",
     "scripts": {
-        "dev": "rollup -c && node test/test.js",
-        "test": "xdg-open test/index.html",
-        "terser": "terser dist/listore.js -o dist/listore.min.js -c && terser dist/listore.esm.js -o dist/listore.esm.min.js -c",
-        "build": "prettier --write ./src && rollup -c && terser dist/listore.js -o dist/listore.min.js -c"
+        "test": "mocha",
+        "doc": "typedoc ./src/listore.ts --out doc",
+        "terser": "terser lib/listore.js -o lib/listore.min.js -c",
+        "build": "prettier --write ./src && tsc && npm run terser"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Crazy-White/listore.git"
+        "url": "git+https://github.com/YieldRay/listore.git"
     },
-    "author": "CrazyWhite",
+    "author": "YieldRay",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/Crazy-White/listore/issues"
+        "url": "https://github.com/YieldRay/listore/issues"
     },
-    "homepage": "https://github.com/Crazy-White/listore#readme",
+    "homepage": "https://github.com/YieldRay/listore#readme",
     "dependencies": {}
 }
