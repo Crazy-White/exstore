@@ -22,7 +22,7 @@ jobs:
               run: npm install
 
             - name: Typedoc
-              run: npx typedoc src/lanzou.ts src/types.ts --out ./doc
+              run: npx typedoc src/listore.ts --out ./doc
 
             - name: Deploy
               uses: peaceiris/actions-gh-pages@v3
