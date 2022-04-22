@@ -3,16 +3,20 @@
         "target": "es6",
         "strict": true,
         "declaration": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "declarationDir": "lib",
         "outDir": "lib",
-        "importHelpers": true,
+        "importHelpers": false,
         "removeComments": true,
         "experimentalDecorators": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
-        "typeRoots": ["node_modules/@types", "src/types"]
+        "typeRoots": ["node_modules/@types", "src/types"],
+        "baseUrl": ".",
+        "paths": {
+            "tslib": ["node_modules/tslib/tslib.d.ts"]
+        }
     },
     "include": ["src"],
     "exclude": ["node_modules", "lib"]

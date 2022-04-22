@@ -8,11 +8,28 @@
 Store data without defining key names multiple times.
 
 ```js
-import Listore from "listore";
-const storage = new Listore(['id', 'name', 'info']);
-storage.append(0, 'test1', 'no desciption');
-storage.append(1, 'test2', 'no desciption');
-storage.toObject(); // => [{ id: 0, name: 'test1', info: 'no desciption' }, { id: 1, name: 'test2', info: 'no desciption' }]
+import Listore from 'listore';
+const tpl = ['name', 'price'];
+const tplWithCheck = [
+    {
+        key: 'name',
+        type: 'string',
+    },
+    {
+        key: 'price',
+        type: 'number',
+        check: value => value > 0,
+    },
+];
+const listore = new Listore(tplWithCheck); // or simply new Listore(tpl)
+listore.insert('item1', 10); // => 1 for success 0 for fail
+listore.insert(['item2', 20], ['item3', 30]); // => 2 for success, returns amount of inserted items
+console.log(listore.toObject());
+//[
+//  { name: 'item1', price: 10 },
+//  { name: 'item2', price: 20 },
+//  { name: 'item3', price: 30 }
+//]
 ```
 
 _Notice_: The 0.x.x version is extremely unstable. Please specify the version number when using
