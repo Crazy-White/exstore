@@ -1,27 +1,19 @@
-import Listore from '../lib/listore.min.js';
+import Listore from '../lib/listore.js';
 import { expect } from 'chai';
 
-const tpl = ['id', 'name', 'price', 'quantity'];
-const tplWithCheck = [
-    {
-        key: 'id',
-        type: 'string',
+const listore = new Listore({
+    id: {
+        type: String,
+        default: '',
     },
-    {
-        key: 'name',
-        type: 'string',
+    name: String,
+    price: {
+        type: Number,
+        validator: value => value > 0,
+        default: 0,
     },
-    {
-        key: 'price',
-        type: 'number',
-        check: value => value > 0,
-    },
-    {
-        key: 'quantity',
-        type: 'string',
-    },
-];
-const listore = new Listore(tplWithCheck);
+    quantity: String,
+});
 
 describe('Listore', function () {
     describe('#insert()', function () {

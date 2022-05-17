@@ -1,7 +1,7 @@
 {
     "name": "listore",
     "type": "module",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Store data without defining key names multiple times",
     "keywords": [
         "storage"

@@ -1,9 +1,10 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2021",
+        "lib": ["DOM", "ES2021"],
         "strict": true,
         "declaration": true,
-        "sourceMap": false,
+        "sourceMap": true,
         "declarationDir": "lib",
         "outDir": "lib",
         "importHelpers": false,

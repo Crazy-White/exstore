@@ -1,64 +1,66 @@
-type Types = 'object' | 'string' | 'number' | 'boolean' | 'bigint' | 'symbol' | 'function' | 'array';
-interface Template {
-    key: string;
-    type: Types;
-    check?: (value: any) => boolean;
+type KeyName = string;
+type Constructor = Function;
+
+interface Options {
+    type?: Constructor | Constructor[];
+    validator?: (value: any) => boolean;
+    required?: boolean; // TODO: not implemented yet
+    default?: any | ((data: any) => any); // TODO: fix behaviour
 }
-type KeyNames = string;
+
+interface ModifiedOptions extends Options {
+    type?: Constructor[]; // if has, must be array, otherwise allow anything
+}
+
+type Template = { [keyName: KeyName]: Options } | KeyName[];
+
+interface Config extends ModifiedOptions {
+    keyName: KeyName;
+}
 interface ItemObject {
     // {k1: v1, k2: v2, k3: v3, ...}
-    [key: KeyNames]: any;
+    [key: KeyName]: any;
 }
 type ItemArray = Array<any>; // [v1, v2, v3, ...]
-
+const constructorCheck = (constructor: Constructor, data: any) => Object.prototype.toString.call(data).slice(8, -1) === constructor.name;
+const defaultGenerator = (data: any) => (typeof data === 'function' ? data() : data);
+const isset = (value: any) => value !== undefined && value !== null;
 class Listore {
-    #keyNames: KeyNames[]; // the key names of the template
-    #template: Template[] | undefined;
+    #templates: Config[] = [];
     #length: number;
     #data: ItemArray[] = [];
-    constructor(tpl: KeyNames[] | Template[]) {
-        if (!tpl.length) {
-            throw new Error('Template is empty');
-        }
-        if (typeof tpl[0] === 'string') {
-            this.#keyNames = tpl as KeyNames[];
+    static constructorCheck = constructorCheck;
+    constructor(tpl: Template) {
+        if (Array.isArray(tpl)) {
             this.#length = tpl.length;
-        } else if (typeof tpl[0] === 'object') {
-            this.#keyNames = tpl.map(item => (item as Template).key);
-            this.#template = tpl as Template[];
-            this.#length = tpl.length;
+            this.#templates = tpl.map(keyName => ({ keyName, required: true }));
         } else {
-            throw new Error('Template is not valid');
+            const entries = Object.entries(tpl);
+            this.#length = entries.length;
+            this.#templates = entries.map(([keyName, options]) => {
+                if (typeof options === 'function') options = { type: [options] };
+                else if (typeof options.type === 'function') options.type = [options.type];
+                return { keyName, ...(options as ModifiedOptions) };
+            });
         }
     }
     size(): number {
         return this.#data.length;
     }
 
-    check(item: ItemArray): boolean {
-        if (item.length !== this.#length) {
-            return false;
-        }
-        if (this.#template) {
-            for (let i = 0; i < this.#length; i++) {
-                const current = item[i],
-                    { type, check: userCheck } = this.#template[i];
-
-                if (type === 'array') {
-                    if (!Array.isArray(current)) return false; // extra check for array
-                    continue;
-                }
-
-                if (type === 'object') {
-                    if (Array.isArray(current)) return false; // can't be array
-                    if (Boolean(current) !== true) return false; // can't be null
-                }
-
-                if (typeof current !== type) return false;
-
-                if (typeof userCheck === 'function') return userCheck(current); // extra check by user
+    insertOne(item: ItemArray): boolean {
+        if (item.length !== this.#length) return false;
+        for (let i = 0; i < this.#length; i++) {
+            const { type: typeConstructors, validator: userCheck, required, default: defaultValue } = this.#templates[i];
+            let current = item[i];
+            if (!isset(current)) {
+                if (isset(defaultValue)) current = defaultGenerator(defaultValue);
+                else return false;
             }
+            if (typeConstructors && !typeConstructors.some(c => constructorCheck(c, item[i]))) return false;
+            if (typeof userCheck === 'function' && userCheck(item[i]) === false) return false; // extra check by user
         }
+        this.#data.push(item);
         return true;
     }
 
@@ -68,8 +70,7 @@ class Listore {
     insert(...items: ItemArray[]): number {
         let insertedAmount = 0;
         for (let i = 0; i < items.length; i++) {
-            if (this.check(items[i])) {
-                this.#data.push(items[i]);
+            if (this.insertOne(items[i])) {
                 insertedAmount++;
             }
         }
@@ -116,7 +117,7 @@ class Listore {
     arrayToObject(item: ItemArray): ItemObject {
         const obj: any = {};
         for (let i = 0; i < this.#length; i++) {
-            obj[this.#keyNames[i]] = item[i];
+            obj[this.#templates[i].keyName] = item[i];
         }
         return obj;
     }
@@ -129,7 +130,7 @@ class Listore {
     objectToArray(item: ItemObject): ItemArray {
         const arr: any[] = [];
         for (let i = 0; i < this.#length; i++) {
-            arr.push(item[this.#keyNames[i]]);
+            arr.push(item[this.#templates[i].keyName]);
         }
         return arr;
     }
@@ -153,7 +154,7 @@ class Listore {
         return this.#data.map(items => {
             const obj: ItemObject = {};
             for (let i = 0; i < this.#length; i++) {
-                obj[this.#keyNames[i]] = items[i];
+                obj[this.#templates[i].keyName] = items[i];
             }
             return obj;
         });
