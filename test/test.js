@@ -2,23 +2,24 @@ import Listore from '../lib/listore.js';
 import { expect } from 'chai';
 
 const listore = new Listore({
-    id: {
-        type: String,
-        default: '',
-    },
+    id: [String, Number],
     name: String,
     price: {
         type: Number,
-        validator: value => value > 0,
         default: 0,
+        validator: value => value >= 0,
     },
-    quantity: String,
+    quantity: {
+        type: String,
+        default: 'Unknown',
+        required: true,
+    },
 });
 
 describe('Listore', function () {
     describe('#insert()', function () {
         it('returns inserted amount', function () {
-            expect(listore.insert(['1', 'item1', 10, 'A'])).to.equal(1);
+            expect(listore.insertOne(['1', 'item1', 10])).to.equal(true);
             expect(listore.insert(['2', 'item2', 20, 'B'])).to.equal(1);
             expect(listore.insert(['3', 'item3', 30, 'C'], ['4', 'item4', 40, 'D'])).to.equal(2);
         });
@@ -32,7 +33,7 @@ describe('Listore', function () {
 
     describe('#find()', function () {
         it('finds sth', function () {
-            expect(listore.find('id', '1')).to.deep.equal([{ id: '1', name: 'item1', price: 10, quantity: 'A' }]);
+            expect(listore.find('id', '1')).to.deep.equal([{ id: '1', name: 'item1', price: 10, quantity: 'Unknown' }]);
         });
     });
 
@@ -46,7 +47,7 @@ describe('Listore', function () {
 
     // the previous test has removed some items and leaves the listore with only 2 items
     const remainings = [
-        { id: '1', name: 'item1', price: 10, quantity: 'A' },
+        { id: '1', name: 'item1', price: 10, quantity: 'Unknown' },
         { id: '2', name: 'item2', price: 20, quantity: 'B' },
     ];
 
