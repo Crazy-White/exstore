@@ -23,7 +23,10 @@ const propValidator = {
     },
 };
 
-const listore = new Listore(propValidator); // or simply new Listore(props)
+const optionArray = ['name', ['name', { type: String }], { keyName: 'name', type: String }]; // all those three form are allowed
+const optionArray = Object.entries(propValidator); // equal to propValidator
+
+const listore = new Listore(propValidator); // or simply new Listore(props), or new Listore(optionArray)
 listore.insertOne(['item1', undefined]); // => 1 for success and 0 for fail, fill undefined for using default value (if set)
 // or listore.insertOne(['item1']);
 listore.insert(['item2', 20], ['item3', 30]); // => 2 for success, returns the amount of inserted items

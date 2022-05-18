@@ -17,7 +17,7 @@ interface PropOptions {
     validator?: (value: any) => boolean; // default value will also be checked by validator
 }
 type ObjectOptions = { [keyName: KeyName]: PropOptions | Constructor | Constructor[] };
-type ArrayOptions = KeyName[] | [KeyName, PropOptions?][];
+type ArrayOptions = KeyName[] | Array<[KeyName, PropOptions?]> | Array<Template>;
 type Options = ObjectOptions | ArrayOptions;
 
 interface Template extends PropOptions {
@@ -44,12 +44,16 @@ class Listore {
     #length: number;
     #data: ItemArray[] = [];
     static constructorCheck = constructorCheck;
+    static toStringTag = toStringTag;
+    static defaultGenerator = defaultGenerator;
+    static isset = isset;
     constructor(tpl: Options) {
         let entries: [KeyName, PropOptions?][];
         if (Array.isArray(tpl)) {
             entries = tpl.map(item => {
                 if (typeof item === 'string') return [item];
-                else return item;
+                else if (Array.isArray(item)) return item;
+                else return [item.keyName, item];
             });
         } else {
             entries = [];

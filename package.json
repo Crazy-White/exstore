@@ -12,7 +12,7 @@
     "scripts": {
         "test": "mocha",
         "doc": "typedoc ./src/listore.ts --out doc",
-        "terser": "terser lib/listore.js -o lib/listore.min.js -c -m",
+        "terser": "terser lib/listore.js -o lib/listore.min.js -c -m --source-map",
         "build": "prettier --write ./src && tsc  && npm run terser"
     },
     "repository": {
