@@ -11,20 +11,21 @@
   this is a loose parse, so we allow `( CR / LF ) +` as a record separator
   @rfc https://www.rfc-editor.org/rfc/rfc4180#section-2
  */
-export function parseCSV(
+export function deocdeCSV(
   csv: string,
-  headers: string[] | boolean = false,
-) {
-  let csvHeader: string[] = Array.isArray(headers) ? headers : []
-
+): string[][] {
   let index = 0
 
-  // consume field but not consume the quote
+  // consume field but not consume the trailing quote
   const consumeField = () => {
     const left = index
     if (csv[index] !== '"') { // no escaping
       while (index < csv.length) {
-        if (csv[index] === ',' || csv[index] === '\r' || csv[index] === '\n')
+        if (
+          csv[index] === ','
+          || csv[index] === '\r'
+          || csv[index] === '\n'
+        )
           return csv.slice(left, index)
         else index++
       }
@@ -38,15 +39,18 @@ export function parseCSV(
     while (index < csv.length) {
       if (csv[index] === '"') {
         // ,"..."
-        if (index + 1 >= csv.length)
+        if (index + 1 >= csv.length) {
+          index++
           return field
+        }
 
         //  ,"...", | ,"..."\r | ,"..."\n
         if (
-          csv[index + 1] === ',' || csv[index + 1] === '\r'
+          csv[index + 1] === ','
+          || csv[index + 1] === '\r'
           || csv[index + 1] === '\n'
         ) {
-          index += 1
+          index++ // skip right quote
           return field
         }
 
@@ -57,7 +61,9 @@ export function parseCSV(
           continue
         }
 
-        throw new Error(`Unexpect \`"\` at position ${index}`)
+        // end of field
+        index++
+        return field
       }
       else {
         // ,"...x
@@ -65,7 +71,7 @@ export function parseCSV(
       }
     }
 
-    throw new Error(`Unexpected end of CSV begin at position ${left}`)
+    throw new Error(`Unexpected end of CSV field begin at position ${left}`)
   }
 
   const consumeRecord = () => {
@@ -83,11 +89,16 @@ export function parseCSV(
         }
       }
       else {
+        if (index >= csv.length)
+          break
+        if (csv[index] !== '\r' && csv[index] !== '\n')
+          throw new Error(`Unexpected end of CSV record at position ${index}`)
+
         // reach record end
         while (
           index < csv.length && (csv[index] === '\r' || csv[index] === '\n')
         ) index++ // skip record separator
-        return record
+        break
       }
     }
     // reach csv end
@@ -97,11 +108,43 @@ export function parseCSV(
   // parse records
   const records: string[][] = []
 
-  if (headers === true)
-    csvHeader = consumeRecord()
-
   while (index < csv.length)
     records.push(consumeRecord())
 
-  return { header: csvHeader, records }
+  return records
+}
+
+export function encodeCSV(records: unknown[][]) {
+  let csv = ''
+
+  for (const record of records) {
+    for (let i = 0; i < record.length; i++) {
+      let field = String(record[i])
+
+      let shouldEscape = false
+
+      if (field.includes('"')) {
+        shouldEscape = true
+        field = field.replace(/"/g, '""')
+      }
+
+      if (
+        field.includes(',')
+        || field.includes('\r')
+        || field.includes('\n')
+      )
+        shouldEscape = true
+
+      if (shouldEscape)
+        field = `"${field}"`
+
+      if (i + 1 < record.length)
+        field += ','
+
+      csv += field
+    }
+    csv += '\r\n'
+  }
+
+  return csv
 }

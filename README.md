@@ -7,9 +7,15 @@
 
 _Store data without defining key names multiple times_
 
-- csv
-- HTML table
-- partial
+_features_
+
+- Easy to use, just like built-in Array
+- Self contained, ZERO dependency
+- Supports wide range of formats
+  - CSV (in, out)
+  - ASCII table (out)
+  - HTML table (out)
+  - HTMLTableElement (in)
 
 <!-- Badges -->
 
