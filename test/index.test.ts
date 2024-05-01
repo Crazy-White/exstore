@@ -9,6 +9,10 @@ describe('listore', () => {
       c3: string
     }>(['c1', 'c2', 'c3'])
 
+    expect(listore).instanceOf(Array)
+
+    expect(Array.isArray(listore)).toBe(true)
+
     listore.push(['1', 2, '3'])
 
     expect(listore.toCSV()).toEqual(`c1,c2,c3\r\n1,2,3\r\n`)

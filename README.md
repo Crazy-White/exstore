@@ -14,13 +14,14 @@ interface Pet {
   age: number
 }
 
-const list = new Listore<Pet>(['species', 'name', 'age'])
+const listore = new Listore<Pet>(['species', 'name', 'age'])
+// listore instanceof Array
 
-list.push(['cat', 'Fluffy', 4])
-list.push(['dog', 'Spot', 7])
-list.push(['cat', 'Mittens', 2])
+listore.push(['cat', 'Fluffy', 4])
+listore.push(['dog', 'Spot', 7])
+listore.push(['cat', 'Mittens', 2])
 
-const objects = list.toObjects()
+const objects = listore.toObjects()
 /**
  * [
  *  { species: 'cat', name: 'Fluffy',  age: 4 },
@@ -29,7 +30,7 @@ const objects = list.toObjects()
  * ]
  */
 
-const csv = list.toCSV()
+const csv = listore.toCSV()
 /**
  * species,name,age
  * cat,Fluffy,4
