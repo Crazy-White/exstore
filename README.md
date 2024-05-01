@@ -7,13 +7,47 @@
 
 _Store data without defining key names multiple times_
 
+```ts
+interface Pet {
+  species: string
+  name: string
+  age: number
+}
+
+const list = new Listore<Pet>(['species', 'name', 'age'])
+
+list.push(['cat', 'Fluffy', 4])
+list.push(['dog', 'Spot', 7])
+list.push(['cat', 'Mittens', 2])
+
+const objects = list.toObjects()
+/**
+ * [
+ *  { species: 'cat', name: 'Fluffy',  age: 4 },
+ *  { species: 'dog', name: 'Spot',    age: 7 },
+ *  { species: 'cat', name: 'Mittens', age: 2 },
+ * ]
+ */
+
+const csv = list.toCSV()
+/**
+ * species,name,age
+ * cat,Fluffy,4
+ * dog,Spot,7
+ * cat,Mittens,2
+ */
+
+// or construct Listore from xxx
+Listore.fromCSV(csv)
+Listore.fromObjects(objects)
+```
+
 _features_
 
 - Easy to use, just like built-in Array
 - Self contained, ZERO dependency
 - Supports wide range of formats
   - CSV (in, out)
-  - ASCII table (out)
   - HTML table (out)
   - HTMLTableElement (in)
 

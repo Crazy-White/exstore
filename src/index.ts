@@ -4,11 +4,12 @@ import * as HTMLTable from './html_table'
 // plan to support https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator
 export class Listore<T extends object> extends Array<T[keyof T][]> {
   constructor(
-    private columns: Array<(keyof T)>,
+    public readonly columns: Array<(keyof T)>,
       records: Array<T[keyof T][]> = [],
   ) {
     super()
     this.push(...records)
+    Object.freeze(this.columns)
   }
 
   toObjects(): T[] {
@@ -31,6 +32,12 @@ export class Listore<T extends object> extends Array<T[keyof T][]> {
 
   toCSV() {
     return CSV.encodeCSV([this.columns, ...this])
+  }
+
+  toHTMLTable(direction: 'tb' | 'lr' = 'tb') {
+    if (direction === 'lr')
+      return HTMLTable.tableLRString(this, this.columns)
+    else return HTMLTable.tableTBString(this, this.columns)
   }
 
   static importObjects(objects: object[]) {
@@ -80,9 +87,11 @@ export class Listore<T extends object> extends Array<T[keyof T][]> {
     return new Listore(header, records)
   }
 
-  toHTMLTable(direction: 'tb' | 'lr' = 'tb') {
-    if (direction === 'lr')
-      return HTMLTable.tableLRString(this, this.columns)
-    else return HTMLTable.tableTBString(this, this.columns)
+  static fromHTMLTableElement(htmlTableElement: HTMLTableElement, strategy: 'innerHTML' | 'innerText' | 'textContent' = 'innerHTML') {
+    const thead = htmlTableElement.querySelector('thead')!
+    const tbody = htmlTableElement.querySelector('tbody')!
+    const columns = Array.from(thead.querySelector('tr')!.querySelectorAll('th')).map(th => th[strategy] ?? '')
+    const records = Array.from(tbody.querySelectorAll('tr')).map(tr => Array.from(tr.querySelectorAll('td')).map(td => td[strategy] ?? ''))
+    return new Listore(columns, records)
   }
 }
